@@ -38,7 +38,9 @@
       @private
      */
 
-    ColorTrackerWheel.prototype.colorFound = function(payload) {
+    ColorTrackerWheel.prototype.colorFound = function(rects) {
+      var blueRects = [],
+          redRects = [];
       var maxRedArea = -1,
           maxRedRect,
           maxBlueArea = -1,
@@ -48,69 +50,100 @@
         return;
       }
 
-      payload.forEach(function(rect) { 
-        var area = rect.width * rect.height;
-
-        if (rect.color == 'blue' && area > maxBlueArea) {
-          maxBlueArea = area;
-          maxBlueRect = rect;
-        }
-        else if (rect.color == 'red' && area > maxBlueArea) {
-          maxRedArea = area;
-          maxRedRect = rect;
+      rects.forEach(function(rect) {
+        if (rect.color === 'blue') {
+          blueRects.push(rect);
+        } else if (rect.color === 'red') {
+          redRects.push(rect);
         }
       });
 
-      if (!maxRedRect || !maxBlueRect) {
+      if (blueRects.length < 2) {
         this.colorNotFound();
         return;
       }
 
-      this.drawTrackingFeedback(maxRedRect, maxBlueRect);
+      var sortingFunction = function(a, b) {
+        return b.width*b.height - a.width*a.height;
+      };
 
-      this.updateKeys(maxRedRect, maxBlueRect);
+      blueRects.sort(sortingFunction);
+
+      redRects.sort(sortingFunction);
+
+      this.drawTrackingFeedback(blueRects, redRects);
+
+      this.updateKeys(blueRects, redRects);
     };
 
     /*
       @private
      */
 
-    ColorTrackerWheel.prototype.drawTrackingFeedback = function(maxRedRect, maxBlueRect) {
-      var redCenter = new Vec2(maxRedRect.x + maxRedRect.width/2,
-                               maxRedRect.y + maxRedRect.height/2),
-          blueCenter = new Vec2(maxBlueRect.x + maxBlueRect.width/2,
-                                maxBlueRect.y + maxBlueRect.height/2);
+    ColorTrackerWheel.prototype.drawTrackingFeedback = function(blueRects, redRects) {
+      var rects = [blueRects[0], blueRects[1]];
+
+      if (redRects.length > 0) {
+        rects.push(redRects[0]);
+
+        if (redRects.length > 1) {
+          rects.push(redRects[1]);
+        }
+      }
 
       var context = this.context;
+      var self = this;
       context.clearRect (0,0,320,240);
 
-      context.strokeStyle = maxBlueRect.color;
-      context.strokeRect(maxBlueRect.x, maxBlueRect.y, maxBlueRect.width, maxBlueRect.height);
-      context.strokeStyle = maxRedRect.color;
-      context.strokeRect(maxRedRect.x, maxRedRect.y, maxRedRect.width, maxRedRect.height);
-
-      context.save();
-      context.strokeStyle = 'yellow';
-      context.beginPath();
-      context.moveTo(redCenter.x, redCenter.y);
-      context.lineTo(blueCenter.x, blueCenter.y);
-      context.stroke();
-      context.restore();
-      // </DEBUG>
+      rects.forEach(function(rect) { self.drawCircle(rect); });
     };
 
     /*
       @private
      */
 
-    ColorTrackerWheel.prototype.updateKeys = function(maxRedRect, maxBlueRect) {
-      var redCenter = new Vec2(maxRedRect.x + maxRedRect.width/2,
-                               maxRedRect.y + maxRedRect.height/2),
-          blueCenter = new Vec2(maxBlueRect.x + maxBlueRect.width/2,
-                                maxBlueRect.y + maxBlueRect.height/2),
-          diff = new Vec2(maxBlueRect.x - maxRedRect.x, maxBlueRect.y - maxRedRect.y);
+    ColorTrackerWheel.prototype.drawCircle = function(rect) {
+      var center = new Vec2(rect.x + rect.width/2,
+                            rect.y + rect.height/2),
+          radius = Math.min(rect.width, rect.height)/2;
+
+      var context = this.context;
+
+      context.save();
+      context.fillStyle = rect.color;
+      context.beginPath();
+      context.moveTo(center.x+radius, center.y);
+      context.arc(center.x, center.y, radius, 0, 2 * Math.PI, false);
+      context.fill();
+      context.restore();
+    };
+
+    /*
+      @private
+     */
+
+    ColorTrackerWheel.prototype.updateKeys = function(blueRects, redRects) {
+      var blueRect1 = blueRects[0], 
+          blueRect2 = blueRects[1];
+
+      if (blueRect1.y > blueRect2.y) {
+        var temp = blueRect1;
+        blueRect1 = blueRect2;
+        blueRect2 = temp;
+      }
+
+      var rectCenter = function (rect) {
+        return new Vec2(rect.x + rect.width/2, rect.y + rect.height/2);
+      };
+
+      var blueCenter1 = rectCenter(blueRect1),
+          blueCenter2 = rectCenter(blueRect2),
+          diff = blueCenter1.subtract(blueCenter2);
           left = 0,
           right = 0,
+          forward = true,
+          ltrigger = false,
+          rtrigger = false;
           delta = diff.x/diff.norm();
 
       if (delta > 0.1) {
@@ -120,7 +153,33 @@
         right = -delta;
       }
 
-      this.buttonCallback({ left: left, right: right, forward: true });
+      if (redRects.length > 1) {
+        var redCenter1 = rectCenter(redRects[0]),
+            redCenter2 = rectCenter(redRects[1]),
+            normsRatio = redCenter1.subtract(redCenter2).norm()/diff.norm();
+
+        if (normsRatio > 0.8 && normsRatio < 1.2) {
+          forward = false;
+        }
+      } else if (redRects.length === 1) {
+        var redCenter = rectCenter(redRects[0]),
+            wheelCenter = new Vec2((blueCenter1.x + blueCenter2.x)/2, (blueCenter1.y+blueCenter2.y)/2),
+            normsRatio = redCenter.subtract(wheelCenter).norm()*2/diff.norm();
+
+        if (normsRatio > 0.8 && normsRatio < 1.2) {
+          if (redCenter.x > wheelCenter.x) {
+            ltrigger = true;
+          } else {
+            rtrigger = true;
+          }
+        }
+      }
+
+      this.buttonCallback({ left: left, 
+                            right: right, 
+                            forward: forward, 
+                            ltrigger: ltrigger, 
+                            rtrigger: rtrigger });
     };
 
 
@@ -133,7 +192,11 @@
         return;
       }
 
-      this.buttonCallback({ left: false, right: false, forward: false });
+      this.buttonCallback({ left: false, 
+                            right: false, 
+                            forward: false, 
+                            ltrigger: false, 
+                            rtrigger: false });
     };
 
     /*
@@ -164,8 +227,6 @@
         self.colorFound(event.data);
       });
 
-      tracker.onNotFound = (function() { self.colorNotFound(); });
-
       this.tracker = tracker;
 
       var canvas = tracking.one('#trackingFeedbackCanvas');
@@ -193,7 +254,7 @@
     }
 
     Vec2.prototype.subtract = function(vec) {
-      return new Vec2(this.x - vec.x, this.y, vec.y);
+      return new Vec2(this.x - vec.x, this.y - vec.y);
     };
 
     Vec2.prototype.norm = function() {

@@ -130,6 +130,8 @@ bkcore.hexgl.ShipControls = function(ctx)
 				self.key.left = keys.left;
 				self.key.right = keys.right;
 				self.key.forward = keys.forward;
+				self.key.ltrigger = keys.ltrigger;
+				self.key.rtrigger = keys.rtrigger;
 			});
 	}
 	else if(ctx.controlType == 1 && bkcore.controllers.TouchController.isCompatible())
