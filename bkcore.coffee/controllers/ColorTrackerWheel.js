@@ -160,8 +160,8 @@
 
       tracker.setColors(['red', 'blue']);
 
-      tracker.onFound = (function(payload) {
-        self.colorFound(payload);
+      tracker.on('track', function(event) {
+        self.colorFound(event.data);
       });
 
       tracker.onNotFound = (function() { self.colorNotFound(); });
