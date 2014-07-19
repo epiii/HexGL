@@ -9,6 +9,8 @@ Unless specified in the file, HexGL's code and resources are licensed under the 
 
 tracking.js is distributed under the BSD License.
 
+See LICENSE.md for more details.
+
 ## Installation
 
 	cd ~/
