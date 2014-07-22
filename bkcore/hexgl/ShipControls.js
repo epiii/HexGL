@@ -122,7 +122,9 @@ bkcore.hexgl.ShipControls = function(ctx)
 	this.orientationController = null;
 	this.gamepadController = null
 
-	if(ctx.controlType == 4 && bkcore.controllers.ColorTrackerWheel.isCompatible())
+	console.log(ctx.controlType);
+
+	if(ctx.controlType == 0 && bkcore.controllers.ColorTrackerWheel.isCompatible())
 	{
 		this.colorTrackerWheel = new bkcore.controllers.ColorTrackerWheel(
 			domElement.querySelector('#video'),
