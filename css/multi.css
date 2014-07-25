@@ -248,6 +248,13 @@ html, body {
   padding: 40px 20px;
 }
 
+#credits a {
+  font-size: 1.1em;
+  font-family: 'BebasNeueRegular', arial, sans-serif;
+  text-decoration: none;
+  color: #4190bb;
+}
+
 #credits h3 {
   font-size: 2em;
   color: #666;
