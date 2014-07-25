@@ -192,6 +192,8 @@
         return;
       }
 
+      this.context.clearRect (0,0,320,240);
+
       this.buttonCallback({ left: false, 
                             right: false, 
                             forward: false, 
@@ -210,14 +212,14 @@
       tracking.ColorTracker.registerColor('red', function(r,g,b) {
         if (!(r+g+b)) return false;
 
-        var result = 100*r/(r+g+b) > 60 && r > 100;
+        var result = r > 100 && 100*g/(r+g+b) < 30 && 100*b/(r+g+b) < 30;
         return result;
       });
 
       tracking.ColorTracker.registerColor('blue', function(r,g,b) {
         if (!(r+g+b)) return false;
 
-        var result = 100*r/(r+g+b) < 30 && 100*g/(r+g+b) < 30 && b > 100;
+        var result = b > 100 && 100*b/(r+g+b) > 50 && 100*r/(r+g+b) < 25;
         return result;
       });
 
