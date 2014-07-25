@@ -15,37 +15,41 @@
     <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
     <link rel="stylesheet" href="css/multi.css" type="text/css" charset="utf-8">
     <link rel="stylesheet" href="css/fonts.css" type="text/css" charset="utf-8">
+    <link rel="stylesheet" href="css/banner.css" type="text/css" charset="utf-8">
     <style>
-      body {
-        padding:0;
-        margin:0;
-      }
-      canvas { pointer-events:none; width: 100%;}
-      #overlay{
-        position: absolute;
-        z-index: 9999;
-        top: 0;
-        left: 0;
-        width: 100%;
-      }
-      #video
-      {
-        position: absolute;
-        z-index: 10000;
-        transform: rotateY(180deg);
-        -webkit-transform:rotateY(180deg);
-        -moz-transform:rotateY(180deg);
-      }
-      #trackingFeedbackCanvas
-      {
-        position: absolute;
-        z-index: 10001;
-        width: 320px;
-        height: 240px;
-        transform: rotateY(180deg);
-        -webkit-transform:rotateY(180deg);
-        -moz-transform:rotateY(180deg);
-      }
+    canvas {
+      pointer-events:none;
+      width: 100%;
+    }
+
+    #overlay{
+      position: absolute;
+      z-index: 9999;
+      top: 23px;
+      width: 100%;
+    }
+    #video {
+      bottom: 0;
+      position: absolute;
+      z-index: 10000;
+      transform: rotateY(180deg);
+      -webkit-transform:rotateY(180deg);
+      -moz-transform:rotateY(180deg);
+    }
+
+    #trackingFeedbackCanvas {
+      position: absolute;
+      z-index: 10001;
+      width: 320px;
+      height: 240px;
+      transform: rotateY(180deg);
+      -webkit-transform:rotateY(180deg);
+      -moz-transform:rotateY(180deg);
+    }
+
+    #ctrl-help {
+      padding-top: 40px;
+    }
     </style>
     <script type="text/javascript">
     //analytics
@@ -61,6 +65,9 @@
   </head>
 
   <body>
+    <div class="demo-title">
+      <p><a href="http://trackingjs.com">tracking.js</a> － control a racing car using color tracking － blue: move | red: break</p>
+    </div>
 
     <video id="video" width="320" height="240" preload autoplay loop muted></video>
     <canvas id="trackingFeedbackCanvas" width="320" height="240"></canvas>
